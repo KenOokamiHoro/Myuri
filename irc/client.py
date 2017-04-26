@@ -81,7 +81,7 @@ class Client(bottom.Client):
         utils.db.log_message(self.dbc,target,self.nick,str(content))
 
     def refuse(self,target,refuse_text):
-        utils.db.log_message(self.dbc,target,self.nick,refuse_text.encode('utf-8'))
+        utils.db.log_message(self.dbc,target,self.nick,refuse_text)
     
     def is_refuse(self,nick,target):
         if nick in self.refuses:
