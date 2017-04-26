@@ -14,8 +14,7 @@ packaging
 pip                       
 pyparsing                 
 python-telegram-bot       
-requests                 
-romkan                    
+requests                                 
 setuptools               
 six                      
 SQLAlchemy                
