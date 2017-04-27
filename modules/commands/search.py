@@ -2,9 +2,9 @@ import asyncio
 import requests
 import re
 
-def searx_search(keyword,amount):
+def searx_search(keyword,lang="all",amount=1):
     '''The actual founction which make searx search.'''
-    query = requests.get("https://searx.yoitsu.moe/?q=%22{}%22&format=json".format(keyword)).json()
+    query = requests.get('https://searx.yoitsu.moe/?q={}&format=json&language={}'.format(keyword,lang)).json()
     try:
         results = query['results'][:amount]
     except IndexError:
@@ -22,9 +22,13 @@ def searx(arg,send):
             amount = int(arg['amount'])
     except TypeError:
         amount = 1
+    if arg['lang']:
+        language = arg['lang']
+    else:
+        language = 'all'
     keyword = arg['keyword']
     try:
-        result = searx_search(keyword,amount)
+        result = searx_search(keyword,language,amount)
     except json.decoder.JSONDecodeError:
         send("╮(￣▽￣)╭ sad story... No results found, or used incorrect search syntax.")
     else:
@@ -36,9 +40,9 @@ def searx(arg,send):
 
 
 help = [
-    ('searx'          , 'searx[:amount] <keyword> -- Get first <amount> results from searx (amount<=3).'),
+    ('searx'          , 'searx[:amount][:lang] <keyword> -- Get first <amount> results from searx (amount<=3) in <lang> language.'),
 ]
 
 func = [
-    (searx            , r"searx(?::(?P<amount>\S+))?\s+(?P<keyword>.+)"),
+    (searx            , r"searx(?::(?P<amount>\d+))?(?::(?P<lang>\S+))?\s+(?P<keyword>.+)"),
 ]

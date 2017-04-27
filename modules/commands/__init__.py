@@ -11,7 +11,7 @@ import random
 from ..timeoutdict import TimeoutDict
 
 path = 'modules.commands.'
-files = ['common', 'util', 'tool', 'arch','search','multiline','joke']
+files = ['common', 'util', 'tool', 'arch','search','multiline','joke','wiki']
 modules = [importlib.reload(importlib.import_module(path + f)) for f in files]
 table = dict(zip(files, modules))
 

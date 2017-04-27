@@ -30,7 +30,6 @@ def keepalive(message, **kwargs):
     
 @bot.on('PRIVMSG')
 def privmsg(nick, target, message, **kwargs):
-    db.log_message(dbc,target,nick,message)
     if nick == bot.nick:
         return
     (nick, message) = bot.deprefix(nick, message)

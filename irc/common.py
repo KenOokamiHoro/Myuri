@@ -60,6 +60,7 @@ class Normalize:
             (r'\x1f', '\x1f'),
         ]
         self.colorreg = re.compile(r'(\\x03\d{1,2}(,\d{1,2})?)')
+        #self.colorreg = re.compile(r'(\\x0\d*[abcdef]?)')
 
     def __call__(self, message, *, stripspace=None, stripline=None, newline=None, convert=None, escape=None):
         if stripspace == None: stripspace = self.stripspace
@@ -78,13 +79,9 @@ class Normalize:
         line = newline.join(lines)
         #if convert:
         #    line = line.translate(self.alias)
-        if escape:
-            for (s, e) in self.esc:
-                line = line.replace(s, e)
-        else:
-            line = self.colorreg.sub('', line)
-            for (s, e) in self.esc:
-                line = line.replace(s, '')
+        line = self.colorreg.sub('', line)        
+        for (s, e) in self.esc:
+            line = line.replace(s, e)
         return line
 
 

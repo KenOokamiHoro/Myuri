@@ -25,7 +25,7 @@ class ChatLogMessage(sqlalchemy.ext.declarative.declarative_base()):
 
 def log_message(dbc,channel,nick,message):
     dbc.session=dbc.Session()
-    log_item = ChatLogMessage(time=datetime.datetime.now(),
+    log_item = ChatLogMessage(time=datetime.datetime.utcnow().astimezone(datetime.timezone(datetime.timedelta(hours=8))),
                               channel=channel,
                               nick=nick,
                               messages=message)
