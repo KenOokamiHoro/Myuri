@@ -11,7 +11,7 @@ import random
 from ..timeoutdict import TimeoutDict
 
 path = 'modules.commands.'
-files = ['common', 'util', 'tool', 'arch','search','multiline','joke','wiki']
+files = ['common', 'arch','search','multiline','joke','wiki']
 modules = [importlib.reload(importlib.import_module(path + f)) for f in files]
 table = dict(zip(files, modules))
 
@@ -32,7 +32,7 @@ def helper(arg, send):
         #send('\\x0300help:\\x0f help [command] -- "{0} 可是 14 岁的\\x0304萌妹子\\x0f哦" by anonymous'.format(arg['meta']['bot'].nick))
         send(' "Hello, world. --{0}"'.format(arg['meta']['bot'].nick))
         #send('(づ￣ω￣)づ  -->>  ' + ' '.join(sorted(help.keys())))
-        send('😋 \\x02help:\\x0f help [command] -->>  ' + ' '.join(sorted(help.keys())))
+        send('😋  -->>  ' + ' '.join(sorted(help.keys())))
         #send('try "\\x0300help \\x1fcommand\\x1f\\x0f" to find out more~')
 
 
@@ -193,7 +193,7 @@ def process(nick):
         #print('process')
         #yield from asyncio.sleep(1)
 
-
+'''
 @asyncio.coroutine
 def dispatch(bot, nick, message, target, send):
     if message[:1] not in ["'", '"']:
@@ -208,8 +208,12 @@ def dispatch(bot, nick, message, target, send):
         yield from queue.put(nick, (bot, message, send), process)
     else:
         print("success")
-        yield from queue.put(nick, (bot, message, send), process)
-
+    yield from queue.put(nick, (bot, message, send), process)
+'''
+def dispatch(bot, nick, message, target, send):
+    if message[:2] not in ["''", '""']:
+        return
+    yield from queue.put(nick, (bot, message[1:], send), process)
 privmsg = [
     #reply,
     #multiline,

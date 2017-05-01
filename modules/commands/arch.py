@@ -20,7 +20,7 @@ class NoResultinAUR(Exception):
 
 def offical_package(pkgname):
     '''Find a Arch Linux Package exactly through web interface.'''
-    url="https://www.archlinux.org/packages/search/json/?name={}&arch=x86_64"
+    url="https://www.archlinux.org/packages/search/json/?name={}&arch=any&arch=x86_64"
     try:
         package = requests.get(url.format(pkgname)).json()['results'][0]
     except IndexError:
@@ -30,7 +30,7 @@ def offical_package(pkgname):
 
 def search_offical_package(keyword):
     '''Search offical packages.'''
-    url="https://www.archlinux.org/packages/search/json/?q={}&arch=x86_64"
+    url="https://www.archlinux.org/packages/search/json/?q={}&arch=any&arch=x86_64"
     try:
         query = requests.get(url.format(keyword)).json()['results']
         pkgnames = query[:5]
@@ -60,10 +60,11 @@ def offical_package_text(package):
     '''Make message text though json.'''
     pkgname = package['pkgname']
     pkgdesc = package['pkgdesc']
+    pkgarch = package['arch']
     pkgver = package['pkgver']+'-'+package['pkgrel']
     flag_date = package['flag_date']
     repo = package['repo']
-    pkgurl = "https://www.archlinux.org/packages/{}/x86_64/{}/".format(repo,pkgname)
+    pkgurl = "https://www.archlinux.org/packages/{}/{}/{}/".format(repo,pkgarch,pkgname)
     template = "[Offical repository] {} ({}),version {} ,in [{}]{}. More information on website: {}"
     text = template.format(pkgname,
                             pkgdesc,

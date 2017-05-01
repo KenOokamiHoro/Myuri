@@ -47,7 +47,7 @@ def moon(arg,send):
 
 
 help = [
-    ('moon'            , 'moon -- Contaminative Moons, powered by FiveYellowMice.'),
+    ('moon'            , '-- Contaminative Moons, made with 🌚 by FiveYellowMice.'),
 ]
 
 func = [
