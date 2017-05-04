@@ -1,6 +1,7 @@
 import asyncio
 import requests
 import re
+import subprocess
 
 class NotinOffical(Exception):
     '''This package is not in offical repoisitories'''
@@ -139,12 +140,23 @@ def yaourt(arg,send):
                     send("Use 'aur <package> to get more information.")
                 except NoResultinAUR:
                     send("	╮(￣▽￣)╭  No result....")
-
+@asyncio.coroutine
+def pkgfile(arg,send):
+    if not arg['filename']:
+        send("😋 want to be eaten ?")
+        return
+    proc = subprocess.Popen(["pkgfile",arg['filename']], stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
+    text = proc.stdout.read().strip()
+    if not text:
+        send("😌 {} not in any offial package......".format(arg['filename']))
+    else:
+        send("{} 😋 => {}".format(text,arg['filename']))
 
 help = [
     ('pacman'          , 'pacman <package name> -- find a package exactly on offical repositories'),
     ('aur'             , 'aur <package name> -- find a package exactly on AUR'), 
     ('yaourt'          , 'yaourt[:option] <package> -- search a package in official repoistories or aur. use exact option to find a package.'),
+    ('pkgfile'         , 'pkgfile <filename> -- which package have this file?')
 #    ('archwiki'        , 'archwiki[:option] <title> -- search ArchWiki titles, use exact option to find a article.'),    
 ]
 
@@ -152,5 +164,6 @@ func = [
     (pacman            , r"pacman (?P<package>.+)"),
     (aur               , r"aur (?P<package>.+)"),
     (yaourt            , r"yaourt(?::(?P<option>\S+))?\s+(?P<package>.+)"),
+    (pkgfile           , r"pkgfile (?P<filename>.+)"),
 #    (archwiki          , r"archwiki(?::(?P<option>\S+))?\s+(?P<title>.+)"),   
 ]
