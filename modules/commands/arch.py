@@ -145,7 +145,7 @@ def pkgfile(arg,send):
     if not arg['filename']:
         send("😋 want to be eaten ?")
         return
-    proc = subprocess.Popen(["pkgfile",arg['filename']], stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
+    proc = subprocess.Popen(["/usr/bin/pkgfile",arg['filename']], stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
     text = proc.stdout.read().strip().split("\n")
     if not text:
         send("😌 {} not in any offial package......".format(arg['filename']))
