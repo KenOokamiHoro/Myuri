@@ -3,12 +3,12 @@ import requests
 import re
 import subprocess
 
-class NotinOffical(Exception):
-    '''This package is not in offical repoisitories'''
+class Notinofficial(Exception):
+    '''This package is not in official repoisitories'''
     pass
 
-class NoResultinOffical(Exception):
-    '''This package is not in offical repoisitories'''
+class NoResultinofficial(Exception):
+    '''This package is not in official repoisitories'''
     pass
 
 class NotinAUR(Exception):
@@ -19,18 +19,18 @@ class NoResultinAUR(Exception):
     '''This package is not in AUR'''
     pass
 
-def offical_package(pkgname):
+def official_package(pkgname):
     '''Find a Arch Linux Package exactly through web interface.'''
     url="https://www.archlinux.org/packages/search/json/?name={}&arch=any&arch=x86_64"
     try:
         package = requests.get(url.format(pkgname)).json()['results'][0]
     except IndexError:
-        raise NotinOffical()
+        raise Notinofficial()
     else:
         return package
 
-def search_offical_package(keyword):
-    '''Search offical packages.'''
+def search_official_package(keyword):
+    '''Search official packages.'''
     url="https://www.archlinux.org/packages/search/json/?q={}&arch=any&arch=x86_64"
     try:
         query = requests.get(url.format(keyword)).json()['results']
@@ -39,7 +39,7 @@ def search_offical_package(keyword):
         pkgnames = query
     finally:
         if not pkgnames:
-            raise NoResultinOffical()
+            raise NoResultinofficial()
         else:        
             return [pkg['pkgname'] for pkg in pkgnames]
 
@@ -57,7 +57,7 @@ def search_aur_package(keyword):
         else:        
             return [pkg['Name'] for pkg in pkgnames]
 
-def offical_package_text(package):
+def official_package_text(package):
     '''Make message text though json.'''
     pkgname = package['pkgname']
     pkgdesc = package['pkgdesc']
@@ -66,11 +66,11 @@ def offical_package_text(package):
     flag_date = package['flag_date']
     repo = package['repo']
     pkgurl = "https://www.archlinux.org/packages/{}/{}/{}/".format(repo,pkgarch,pkgname)
-    template = "[Offical repository] {} ({}),version {} ,in [{}]{}. More information on website: {}"
-    text = template.format(pkgname,
+    template = "[{}/{}] ({}),version {} ,{}. More information on website: {}"
+    text = template.format( repo,
+                            pkgname,
                             pkgdesc,
                             pkgver,
-                            repo,
                             (",flagged out of date on {}".format(flag_date) if flag_date else ""),
                             pkgurl)
     return text
@@ -104,9 +104,9 @@ def aurweb_text(package):
 def pacman(arg,send):
     '''Find a Arch Linux Package exactly through web interface.'''
     try:
-        text = offical_package_text(offical_package(arg['package']))
-    except NotinOffical:
-        send("Package '{}' not found, may it isn't in offical repositories or it is a group?".format(arg['package']))
+        text = official_package_text(official_package(arg['package']))
+    except Notinofficial:
+        send("Package '{}' not found, may it isn't in official repositories or it is a group?".format(arg['package']))
     else:
         send(text)
 
@@ -123,18 +123,18 @@ def aur(arg,send):
 @asyncio.coroutine
 def yaourt(arg,send):
     try:
-        send(offical_package_text(offical_package(arg['package'])))
-    except NotinOffical:
+        send(official_package_text(official_package(arg['package'])))
+    except Notinofficial:
         try:
             send(aurweb_text(aurweb(arg['package'])))
         except NotinAUR:
             if arg['option'] == 'exact' :
-                send("	╮(￣▽￣)╭  {} is not in offical repoistories or AUR.".format(arg['package']))
+                send("	╮(￣▽￣)╭  {} is not in official repoistories or AUR.".format(arg['package']))
                 return
             try:
-                send("Some package in offical repositories match your search: {}".format(search_offical_package(arg['package'])))
+                send("Some package in official repositories match your search: {}".format(search_official_package(arg['package'])))
                 send("Use 'pacman <package> to get more information.")
-            except NoResultinOffical:
+            except NoResultinofficial:
                 try:
                     send("Some package in AUR match your search: {}".format(search_aur_package(arg['package'])))
                     send("Use 'aur <package> to get more information.")
@@ -153,7 +153,7 @@ def pkgfile(arg,send):
         send("{} 😋 => {}".format(text,arg['filename']))
 
 help = [
-    ('pacman'          , 'pacman <package name> -- find a package exactly on offical repositories'),
+    ('pacman'          , 'pacman <package name> -- find a package exactly on official repositories'),
     ('aur'             , 'aur <package name> -- find a package exactly on AUR'), 
     ('yaourt'          , 'yaourt[:option] <package> -- search a package in official repoistories or aur. use exact option to find a package.'),
     ('pkgfile'         , 'pkgfile <filename> -- which package have this file?')
