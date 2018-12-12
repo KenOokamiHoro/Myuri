@@ -90,3 +90,12 @@ ENV/
 .vscode
 modules.examples/*
 config.py
+
+# Data files
+doc-conf/
+doc-logs/
+backup/
+logs/
+tmp/
+Myuri.*
+conf/users.conf
