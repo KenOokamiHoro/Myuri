@@ -103,28 +103,13 @@ class ArchLinuxCN(supybot.callbacks.Plugin):
             return
         if not nick in self.registryValue('relaybots'):
             return
-
         try:
-            inside_nick, action, args = re.match(r"^\[(.*)\] !(\w*) (.*)", text).groups()
+            msg.nick = re.match(r"^\[(.*)\]", text).groups(1)[0]
         except AttributeError:
-            return
-        except ValueError:
-            return
-        else:
-            msg.nick = inside_nick
-            if action in self.__class__.__dict__:
-                self._runCommandFunction(irc, msg, action, args.split(" "))
+            pass
 
     def doPrivmsg(self, irc, msg):
-        if not supybot.callbacks.addressed(irc.nick, msg):  # message is not direct command
-            self.do_privmsg_notice(irc, msg)
-
-    def _runCommandFunction(self, irc, msg, command, args):
-        """Run a command from message, as if command was sent over IRC."""
-        try:
-            self.__class__.__dict__[command](self, irc, msg, args)
-        except KeyError:
-            pass
+        self.do_privmsg_notice(irc, msg)
 
 
 Class = ArchLinuxCN
