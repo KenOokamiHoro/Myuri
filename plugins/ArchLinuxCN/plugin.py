@@ -27,24 +27,27 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
-import asyncio
-import requests
+
 import re
-import subprocess
+import requests
 
+import supybot.commands
+import supybot.callbacks
+import supybot.log
+import supybot.plugins
 
-from supybot import utils, plugins, ircutils, callbacks
-from supybot.commands import *
 try:
     from supybot.i18n import PluginInternationalization
+
     _ = PluginInternationalization('ArchLinuxCN')
 except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
-    def _(x): return x
+    def _(x):
+        return x
 
 
-class ArchLinuxCN(callbacks.Plugin):
+class ArchLinuxCN(supybot.callbacks.Plugin):
     """Some useful commands in Arch Linux CN Community channels."""
     threaded = True
 
@@ -52,15 +55,8 @@ class ArchLinuxCN(callbacks.Plugin):
         self.__parent = super(ArchLinuxCN, self)
         self.__parent.__init__(irc)
 
-    def hello(self, irc, msg, args, word="world"):
-        '''[<word>]
-
-        Say hello to [word].
-        '''
-        irc.reply("hello, {}!".format(word))
-    hello = wrap(hello, ['anything'])
-
-    def pacman(self, irc, msg, args, package):
+    @supybot.commands.wrap(['anything'])
+    def pacman(self, irc, msg, args, package, recipt=None):
         '''<package>
 
         Find <package> in Arch Linux offical repositories exactly.
@@ -73,8 +69,8 @@ class ArchLinuxCN(callbacks.Plugin):
         else:
             for line in text:
                 irc.reply(line)
-    pacman = wrap(pacman, ['anything'])
 
+    @supybot.commands.wrap(['anything'])
     def aur(self, irc, msg, args, package):
         '''<package>
 
@@ -86,8 +82,8 @@ class ArchLinuxCN(callbacks.Plugin):
         else:
             for line in text:
                 irc.reply(line)
-    aur = wrap(aur, ['anything'])
 
+    @supybot.commands.wrap(['anything'])
     def cnbuild(self, irc, msg, args, package):
         '''<package>
 
@@ -95,11 +91,41 @@ class ArchLinuxCN(callbacks.Plugin):
         try:
             text = archlinuxcn_package_text(archlinuxcn_package(package))
         except not_in_archlinuxcn:
-            irc.reply("Error: Package '{}' not found in [archlinuxcn].".format(package))
+            irc.reply(
+                "Error: Package '{}' not found in [archlinuxcn].".format(package))
         else:
             for line in text:
                 irc.reply(line)
-    cnbuild = wrap(cnbuild, ['anything'])
+
+    def do_privmsg_notice(self, irc, msg):
+        channel, nick, text = msg.args[0], msg.nick, msg.args[-1]
+        if not irc.isChannel(channel):
+            return
+        if not nick in self.registryValue('relaybots'):
+            return
+
+        try:
+            inside_nick, action, args = re.match(r"^\[(.*)\] !(\w*) (.*)", text).groups()
+        except AttributeError:
+            return
+        except ValueError:
+            return
+        else:
+            msg.nick = inside_nick
+            if action in self.__class__.__dict__:
+                self._runCommandFunction(irc, msg, action, args.split(" "))
+
+    def doPrivmsg(self, irc, msg):
+        if not supybot.callbacks.addressed(irc.nick, msg):  # message is not direct command
+            self.do_privmsg_notice(irc, msg)
+
+    def _runCommandFunction(self, irc, msg, command, args):
+        """Run a command from message, as if command was sent over IRC."""
+        try:
+            self.__class__.__dict__[command](self, irc, msg, args)
+        except KeyError:
+            pass
+
 
 Class = ArchLinuxCN
 
@@ -133,8 +159,29 @@ class not_found_in_aur(Exception):
     '''This  keywoard is not found in AUR'''
     pass
 
-# May I use one function to union these find functions in the future?
 
+class Repository:
+    '''Represents a Arch Linux software repository.'''
+
+    def __init__(self, find_url, search_url=None):
+        self.find_url = find_url
+        self.search_url = search_url
+
+    def find(self, pkgname):
+        '''Find a package in repository.'''
+        try:
+            package = requests.get(self.find_url.format(pkgname)).json()['results'][0]
+        except IndexError:
+            return -1
+
+
+offical = Repository(find_url="https://www.archlinux.org/packages/search/json/?name={}&arch=any&arch=x86_64",
+                     search_url="https://www.archlinux.org/packages/search/json/?q={}&arch=any&arch=x86_64")
+aur = Repository(find_url="https://aur.archlinux.org/rpc/?v=5&type=info&arg[]={}",
+                 search_url="https://aur.archlinux.org/rpc/?v=5&type=search&by=name-desc&arg={}")
+
+
+# May I use one function to union these find functions in the future?
 
 def official_package(pkgname):
     '''Find a Arch Linux Package exactly through web interface.'''
@@ -180,8 +227,8 @@ def archlinuxcn_package_text(package):
 def search_official_package(keyword):
     '''Search official packages.'''
     url = "https://www.archlinux.org/packages/search/json/?q={}&arch=any&arch=x86_64"
+    query = requests.get(url.format(keyword)).json()['results']
     try:
-        query = requests.get(url.format(keyword)).json()['results']
         pkgnames = query[:5]
     except IndexError:
         pkgnames = query
@@ -195,8 +242,8 @@ def search_official_package(keyword):
 def search_aur_package(keyword):
     '''Search AUR packages.'''
     url = "https://aur.archlinux.org/rpc/?v=5&type=search&by=name-desc&arg={}"
+    query = requests.get(url.format(keyword)).json()['results']
     try:
-        query = requests.get(url.format(keyword)).json()['results']
         pkgnames = query[:5]
     except IndexError:
         pkgnames = query
@@ -212,7 +259,7 @@ def official_package_text(package):
     pkgname = package['pkgname']
     pkgdesc = package['pkgdesc']
     pkgarch = package['arch']
-    pkgver = package['pkgver']+'-'+package['pkgrel']
+    pkgver = package['pkgver'] + '-' + package['pkgrel']
     flag_date = package['flag_date']
     repo = package['repo']
     pkgurl = "https://www.archlinux.org/packages/{}/{}/{}/".format(
@@ -242,7 +289,5 @@ def aurweb_text(package):
                            maintainer,
                            pkgurl)
     return text.split("\n")
-
-
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
