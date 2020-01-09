@@ -199,7 +199,7 @@ def archlinuxcn_package(package):
 
 
 def archlinuxcn_package_text(package):
-    source = "https://github.com/archlinuxcn/repo/tree/master/{package}"
+    source = "https://github.com/archlinuxcn/repo/tree/master/archlinuxcn/{package}"
     template = "{package}({pkgver}) is build {status} on {time}.\nView source on {source_url}"
     text = template.format(package=package['pkgname'],
                            pkgver=package['pkgver'],
