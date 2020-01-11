@@ -98,6 +98,6 @@ doc-logs/
 backup/
 logs/
 tmp/
+conf/
+data/
 Myuri.*
-conf/*
-data/*
