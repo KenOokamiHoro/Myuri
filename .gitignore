@@ -99,5 +99,5 @@ backup/
 logs/
 tmp/
 Myuri.*
-conf/users.conf
-conf/userdata.conf
+conf/*
+data/*
